@@ -74,15 +74,19 @@ type Scan struct {
 	ChecksAssessed int
 	ChecksUnknown  int
 	Comparable     bool
-	CreatedAt      time.Time
-	StartedAt      *time.Time
-	FinishedAt     *time.Time
+	// CollectionIncomplete means at least one asset listing was partial,
+	// failed, or missing. Check counts then describe only the known inventory.
+	CollectionIncomplete bool
+	CreatedAt            time.Time
+	StartedAt            *time.Time
+	FinishedAt           *time.Time
 }
 
 // MinCoverage is the threshold below which we refuse to show a score.
 const MinCoverage = 0.60
 
-// Coverage = assessed / total. A scan with zero applicable checks has zero
+// Coverage = assessed / total for known assets. It is not overall coverage
+// when CollectionIncomplete is true. A scan with zero applicable checks has zero
 // coverage (we assessed nothing), not 100%.
 func (s Scan) Coverage() float64 {
 	if s.ChecksTotal == 0 {
@@ -99,7 +103,7 @@ func (s Scan) CoveragePct() int {
 // ScoreVisible is false when too little was assessed for the score to mean
 // anything. The UI then shows "Insufficient coverage" instead of a number.
 func (s Scan) ScoreVisible() bool {
-	return s.Status == ScanSucceeded && s.Coverage() >= MinCoverage
+	return s.Status == ScanSucceeded && !s.CollectionIncomplete && s.Coverage() >= MinCoverage
 }
 
 // CollectionStatus records whether listing an asset kind fully succeeded.

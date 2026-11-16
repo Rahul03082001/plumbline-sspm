@@ -32,6 +32,10 @@ export default defineConfig({
       // A slower simulated scan keeps it "running" long enough to click twice.
       SIMULATED_SCAN_DELAY: "3s",
       LOG_LEVEL: "warn",
+      // Keep the test server isolated from credentials in the caller's shell.
+      GITHUB_TOKEN: "",
+      GITHUB_ORG: "",
+      TRUSTED_PROXY_HOPS: "0",
     },
   },
 });

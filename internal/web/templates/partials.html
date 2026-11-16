@@ -15,6 +15,15 @@
     {{if .ShowDelta}}{{if gt .Delta 0}}<span class="delta up" title="Higher than the previous scan, with the same visibility">▲ {{.Delta}}</span>{{else if lt .Delta 0}}<span class="delta down" title="Lower than the previous scan">▼ {{absInt .Delta}}</span>{{end}}{{end}}
   </div>
   <p class="score-line">Score {{.Score}} · {{.Assessed}} of {{.Total}} checks assessed ({{.CoveragePct}}%)</p>
+  {{else if .CollectionIncomplete}}
+  <div class="score-row insufficient">
+    <span class="score-num">—</span>
+    <span class="score-label">Incomplete collection</span>
+  </div>
+  <p class="score-line">{{.Assessed}} of {{.Total}} known checks assessed. Overall coverage is unknown because some assets could not be listed. Score withheld until collection is complete.</p>
+  <ul class="reasons" aria-label="Incomplete asset listings">
+    {{range .IncompleteCollections}}<li>{{.Kind}}: {{.Status}} — {{reasonText .Reason}}</li>{{end}}
+  </ul>
   {{else}}
   <div class="score-row insufficient">
     <span class="score-num">—</span>
@@ -22,10 +31,14 @@
   </div>
   <p class="score-line">Only {{.Assessed}} of {{.Total}} checks assessed ({{.CoveragePct}}%). A score needs at least 60%, because a perfect score over little data is misleading.</p>
   {{end}}
-  <meter class="coverage" min="0" max="100" low="60" high="90" optimum="100" value="{{.CoveragePct}}" title="Coverage {{.CoveragePct}}%">{{.CoveragePct}}%</meter>
-  {{if .NotComparable}}
+  {{if not .CollectionIncomplete}}<meter class="coverage" min="0" max="100" low="60" high="90" optimum="100" value="{{.CoveragePct}}" title="Coverage {{.CoveragePct}}%">{{.CoveragePct}}%</meter>{{end}}
+  {{if and .NotComparable (not .CollectionIncomplete)}}
+    {{if .PreviousIncomplete}}
+  <p class="not-comparable"><span class="badge badge-warn">Not comparable: previous collection was incomplete</span></p>
+    {{else}}
   <p class="not-comparable"><span class="badge badge-warn">Not comparable: visibility dropped</span>
     {{if .HasPrevious}}<span class="cov-change">Coverage {{.PrevCoveragePct}}% → {{.CoveragePct}}%</span>{{end}}</p>
+    {{end}}
   {{end}}
   {{if and (not .Visible) .UnknownReasons}}
   <ul class="reasons" aria-label="Why checks are unknown">
@@ -83,7 +96,7 @@
 {{if lt .Count 2}}<p class="muted">The trend line appears after two scans.</p>{{end}}
 <svg class="spark" viewBox="0 0 {{.W}} {{.H}}" role="img" aria-label="Score and coverage over the last {{.Count}} scans">
   <line class="spark-threshold" x1="0" x2="{{.W}}" y1="{{.ThresholdY}}" y2="{{.ThresholdY}}"/>
-  {{with .CoverageLine}}<polyline class="spark-coverage" points="{{.}}"/>{{end}}
+  {{range .CoverageSegments}}<polyline class="spark-coverage" points="{{.}}"/>{{end}}
   {{range .ScoreSegments}}<polyline class="spark-score" points="{{.}}"/>{{end}}
   {{range .ScoreDots}}<circle class="spark-dot" cx="{{.X}}" cy="{{.Y}}" r="3"/>{{end}}
   {{range .GapDots}}<circle class="spark-gap" cx="{{.X}}" cy="{{.Y}}" r="3.5"/>{{end}}

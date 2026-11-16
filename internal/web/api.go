@@ -13,20 +13,22 @@ import (
 // JSON shapes. Field names are snake_case and stable; they are the public API.
 
 type scanJSON struct {
-	ID             string     `json:"id"`
-	ConnectionID   string     `json:"connection_id"`
-	Status         string     `json:"status"`
-	Error          string     `json:"error,omitempty"`
-	RetryAfter     *time.Time `json:"retry_after,omitempty"`
-	Score          *int       `json:"score"` // null when coverage is insufficient
-	CoveragePct    *int       `json:"coverage_pct"`
-	ChecksTotal    *int       `json:"checks_total"`
-	ChecksAssessed *int       `json:"checks_assessed"`
-	ChecksUnknown  *int       `json:"checks_unknown"`
-	Comparable     *bool      `json:"comparable"`
-	CreatedAt      time.Time  `json:"created_at"`
-	StartedAt      *time.Time `json:"started_at,omitempty"`
-	FinishedAt     *time.Time `json:"finished_at,omitempty"`
+	ID                     string     `json:"id"`
+	ConnectionID           string     `json:"connection_id"`
+	Status                 string     `json:"status"`
+	Error                  string     `json:"error,omitempty"`
+	RetryAfter             *time.Time `json:"retry_after,omitempty"`
+	Score                  *int       `json:"score"` // null when coverage is insufficient
+	CoveragePct            *int       `json:"coverage_pct"`
+	InventoryComplete      *bool      `json:"inventory_complete"`
+	KnownChecksCoveragePct *int       `json:"known_checks_coverage_pct"`
+	ChecksTotal            *int       `json:"checks_total"`
+	ChecksAssessed         *int       `json:"checks_assessed"`
+	ChecksUnknown          *int       `json:"checks_unknown"`
+	Comparable             *bool      `json:"comparable"`
+	CreatedAt              time.Time  `json:"created_at"`
+	StartedAt              *time.Time `json:"started_at,omitempty"`
+	FinishedAt             *time.Time `json:"finished_at,omitempty"`
 }
 
 // toScanJSON hides numbers that don't exist yet (queued/running/failed) and
@@ -36,7 +38,13 @@ func toScanJSON(s model.Scan) scanJSON {
 		RetryAfter: s.RetryAfter, CreatedAt: s.CreatedAt, StartedAt: s.StartedAt, FinishedAt: s.FinishedAt}
 	if s.Status == model.ScanSucceeded {
 		cov, total, assessed, unknown, comparable := s.CoveragePct(), s.ChecksTotal, s.ChecksAssessed, s.ChecksUnknown, s.Comparable
-		j.CoveragePct, j.ChecksTotal, j.ChecksAssessed, j.ChecksUnknown, j.Comparable = &cov, &total, &assessed, &unknown, &comparable
+		complete := !s.CollectionIncomplete
+		comparable = comparable && complete
+		j.InventoryComplete, j.KnownChecksCoveragePct = &complete, &cov
+		j.ChecksTotal, j.ChecksAssessed, j.ChecksUnknown, j.Comparable = &total, &assessed, &unknown, &comparable
+		if complete {
+			j.CoveragePct = &cov
+		}
 		if s.ScoreVisible() {
 			score := s.Score
 			j.Score = &score
@@ -73,7 +81,7 @@ func (s *Server) apiConnections(w http.ResponseWriter, r *http.Request) {
 			lj := toScanJSON(*sum.Latest)
 			c.LatestScan = &lj
 		}
-		if sum.Previous != nil {
+		if sum.Previous != nil && !sum.Previous.CollectionIncomplete {
 			p := sum.Previous.CoveragePct()
 			c.PreviousCoveragePct = &p
 		}

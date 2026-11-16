@@ -368,6 +368,11 @@ func (s *Service) publish(ctx context.Context, scanID string, reg registration, 
 
 		final := model.Scan{ID: scanID, Score: totals.Score, ChecksTotal: totals.Total,
 			ChecksAssessed: totals.Assessed, ChecksUnknown: totals.Unknown, Status: model.ScanSucceeded}
+		for _, c := range cols {
+			if c.Status != model.CollectionComplete {
+				final.CollectionIncomplete = true
+			}
+		}
 		final.Comparable = isComparable(results, prevResults, prevScan, final)
 
 		for _, k := range model.AllKinds {

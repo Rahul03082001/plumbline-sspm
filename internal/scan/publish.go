@@ -131,6 +131,9 @@ const maxCoverageDrop = 0.05
 // RISE just because failing checks became unreadable. So it is NOT comparable
 // when (a) any check went fail -> unknown, or (b) coverage dropped > 5 points.
 func isComparable(results []model.CheckResult, prev map[string]model.CheckResult, prevScan *model.Scan, cur model.Scan) bool {
+	if cur.CollectionIncomplete || (prevScan != nil && prevScan.CollectionIncomplete) {
+		return false // the full inventory, and therefore overall coverage, is unknown
+	}
 	if prevScan == nil {
 		return true // nothing to compare against
 	}

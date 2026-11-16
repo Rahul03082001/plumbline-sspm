@@ -33,6 +33,31 @@ jobs:
           echo "Top-level tests: $(grep -cE '^=== RUN   Test[^/]*$' test.log)"
           echo "All test cases:  $(grep -c '^=== RUN' test.log)"
 
+  browser:
+    name: Playwright browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      # GitHub's Ubuntu runner includes Node; fail clearly if it is too old.
+      - name: Check Node runtime
+        run: node -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(1)'
+      - name: Build application
+        run: make build
+      - name: Install browser test dependencies
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run browser tests
+        working-directory: e2e
+        run: npx playwright test
+
   docker:
     name: docker build
     runs-on: ubuntu-latest

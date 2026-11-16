@@ -31,16 +31,19 @@ type cardView struct {
 // scoreView renders "Score 74 · 11 of 14 checks assessed (79%)" and all the
 // honesty rules around it (spec section 5).
 type scoreView struct {
-	Visible         bool // false -> "Insufficient coverage"
-	Score           int
-	Assessed, Total int
-	CoveragePct     int
-	NotComparable   bool
-	HasPrevious     bool
-	PrevCoveragePct int
-	Delta           int
-	ShowDelta       bool // never true when not comparable
-	UnknownReasons  []scan.ReasonCount
+	Visible               bool // false -> "Insufficient coverage"
+	Score                 int
+	Assessed, Total       int
+	CoveragePct           int
+	NotComparable         bool
+	HasPrevious           bool
+	PrevCoveragePct       int
+	Delta                 int
+	ShowDelta             bool // never true when not comparable
+	UnknownReasons        []scan.ReasonCount
+	CollectionIncomplete  bool
+	IncompleteCollections []model.Collection
+	PreviousIncomplete    bool
 }
 
 type failureView struct {
@@ -57,10 +60,17 @@ func newScoreView(sum scan.ConnectionSummary) scoreView {
 	v := scoreView{
 		Visible: l.ScoreVisible(), Score: l.Score, Assessed: l.ChecksAssessed, Total: l.ChecksTotal,
 		CoveragePct: l.CoveragePct(), NotComparable: !l.Comparable, UnknownReasons: sum.UnknownReasons,
+		CollectionIncomplete: l.CollectionIncomplete,
+	}
+	for _, c := range sum.Collections {
+		if c.Status != model.CollectionComplete {
+			v.IncompleteCollections = append(v.IncompleteCollections, c)
+		}
 	}
 	if sum.Previous != nil {
 		v.HasPrevious = true
 		v.PrevCoveragePct = sum.Previous.CoveragePct()
+		v.PreviousIncomplete = sum.Previous.CollectionIncomplete
 	}
 	v.Delta, v.ShowDelta = sum.ScoreDelta()
 	return v
@@ -136,13 +146,13 @@ const (
 
 // sparkView is an inline-SVG trend of the last 10 scans.
 type sparkView struct {
-	W, H          int
-	ThresholdY    int      // the 60% line: below it no score is shown
-	ScoreSegments []string // each is a polyline "x,y x,y"; gaps split segments
-	CoverageLine  string
-	ScoreDots     []dot
-	GapDots       []dot // scans whose score is left out of the line
-	Count         int
+	W, H             int
+	ThresholdY       int      // the 60% line: below it no score is shown
+	ScoreSegments    []string // each is a polyline "x,y x,y"; gaps split segments
+	CoverageSegments []string
+	ScoreDots        []dot
+	GapDots          []dot // scans whose score is left out of the line
+	Count            int
 }
 
 type dot struct{ X, Y int }
@@ -167,6 +177,12 @@ func newSparkView(history []model.Scan) sparkView {
 	y := func(pct float64) int { return sparkP + int((1-pct/100)*float64(sparkH-2*sparkP)+0.5) }
 
 	var cov []string
+	flushCoverage := func() {
+		if len(cov) > 1 {
+			v.CoverageSegments = append(v.CoverageSegments, strings.Join(cov, " "))
+		}
+		cov = nil
+	}
 	var seg []string
 	flush := func() {
 		if len(seg) > 1 {
@@ -175,6 +191,11 @@ func newSparkView(history []model.Scan) sparkView {
 		seg = nil
 	}
 	for i, s := range history {
+		if s.CollectionIncomplete {
+			flush()
+			flushCoverage()
+			continue // no overall percentage is known; leave both lines broken
+		}
 		cov = append(cov, fmt.Sprintf("%d,%d", x(i), y(s.Coverage()*100)))
 		gap := !s.ScoreVisible() || (i > 0 && !s.Comparable)
 		if gap {
@@ -187,9 +208,7 @@ func newSparkView(history []model.Scan) sparkView {
 		v.ScoreDots = append(v.ScoreDots, p)
 	}
 	flush()
-	if len(cov) > 1 {
-		v.CoverageLine = strings.Join(cov, " ")
-	}
+	flushCoverage()
 	return v
 }
 

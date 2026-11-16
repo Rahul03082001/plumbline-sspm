@@ -40,6 +40,7 @@ type ConnectionSummary struct {
 	FailBySeverity []SeverityCount
 	Unverifiable   int
 	UnknownReasons []ReasonCount
+	Collections    []model.Collection
 }
 
 // ScoreDelta returns the change since the previous scan, and whether it
@@ -113,6 +114,9 @@ func (s *Service) summary(ctx context.Context, c model.Connection) (ConnectionSu
 	if sum.Latest == nil {
 		return sum, nil
 	}
+	if sum.Collections, err = s.store.Collections(ctx, sum.Latest.ID); err != nil {
+		return sum, err
+	}
 	if sum.Previous, err = optional(s.store.PreviousSucceeded(ctx, *sum.Latest)); err != nil {
 		return sum, err
 	}
@@ -161,11 +165,10 @@ func tally(results []store.ResultRow) ([]SeverityCount, int, []ReasonCount) {
 // ConnectionDetail is everything the connection page shows.
 type ConnectionDetail struct {
 	ConnectionSummary
-	History     []model.Scan // last 10 succeeded scans, oldest first
-	Drift       *Drift
-	Findings    []store.ResultRow // failing checks of the current scan
-	Unknowns    []store.ResultRow // unknown checks of the current scan
-	Collections []model.Collection
+	History  []model.Scan // last 10 succeeded scans, oldest first
+	Drift    *Drift
+	Findings []store.ResultRow // failing checks of the current scan
+	Unknowns []store.ResultRow // unknown checks of the current scan
 }
 
 // ConnectionDetail loads the connection page. severity filters the findings.
@@ -192,8 +195,7 @@ func (s *Service) ConnectionDetail(ctx context.Context, id string, severity mode
 	if d.Unknowns, err = s.store.Results(ctx, sum.Latest.ID, store.ResultFilter{Result: model.Unknown}); err != nil {
 		return d, err
 	}
-	d.Collections, err = s.store.Collections(ctx, sum.Latest.ID)
-	return d, err
+	return d, nil
 }
 
 // Findings returns the failing checks of a scan, optionally by severity.

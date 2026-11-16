@@ -77,6 +77,11 @@ attribute schema, so a typo in a rule stops the app instead of silently never fi
   failure, over **assessed** checks only. **Coverage** = assessed ÷ applicable.
 - Always shown together: **"Score 74 · 11 of 14 checks assessed (79%)"**.
   Below 60% coverage there is **no score**, only "Insufficient coverage" and the reasons.
+- **Incomplete inventory.** If any asset listing is partial, failed, or missing,
+  the score is withheld and overall coverage is unknown, including on the first
+  scan. Known check counts remain available; both trend lines have a gap. The API
+  returns `inventory_complete: false`, `score: null`, and `coverage_pct: null`;
+  `known_checks_coverage_pct` describes only the assets already known to the scanner.
 - **Not comparable.** Excluding unknowns means a score can *rise* just because
   failing checks became unreadable. If any check went fail → unknown, or coverage
   fell more than 5 points, the scan is flagged **"Not comparable: visibility dropped"**,
@@ -162,7 +167,7 @@ Every decision is explained in plain language in **[DECISIONS.md](DECISIONS.md)*
 
 | | |
 |---|---|
-| Tests | **72** test functions, **146** cases incl. subtests (`go test -race ./...`), plus 2 Playwright browser tests |
+| Tests | Go unit and integration tests with the race detector, plus **2 Playwright browser tests**, all required by CI |
 | Direct Go dependencies | **5** |
 | Static binary | ~16 MB (stripped) |
 | Container image | **31.2 MB** uncompressed (distroless static, non-root; measured in CI) |

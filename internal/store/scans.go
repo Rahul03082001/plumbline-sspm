@@ -10,8 +10,11 @@ import (
 	"github.com/Rahul03082001/plumbline-sspm/internal/model"
 )
 
-const scanColumns = `id, connection_id, status, error, retry_after, score, checks_total,
-	checks_assessed, checks_unknown, comparable, created_at, started_at, finished_at`
+// Derive completeness from the atomically published collections so existing
+// databases and historical scans get the same protection without a migration.
+var scanColumns = fmt.Sprintf(`id, connection_id, status, error, retry_after, score, checks_total,
+	checks_assessed, checks_unknown, comparable, created_at, started_at, finished_at,
+	(SELECT COUNT(*) FROM collections WHERE scan_id = scans.id AND status = 'complete') <> %d AS collection_incomplete`, len(model.AllKinds))
 
 // CreateScan inserts a queued scan. If the connection already has an active
 // scan, the partial unique index rejects the insert and we return
@@ -165,8 +168,9 @@ func scanScan(r rowScanner) (model.Scan, error) {
 	var errText sql.NullString
 	var score, total, assessed, unknown, comparable sql.NullInt64
 	var retryAfter, created, started, finished dbTime
+	var incomplete bool
 	err := r.Scan(&sc.ID, &sc.ConnectionID, &status, &errText, &retryAfter, &score, &total,
-		&assessed, &unknown, &comparable, &created, &started, &finished)
+		&assessed, &unknown, &comparable, &created, &started, &finished, &incomplete)
 	if err != nil {
 		return sc, err
 	}
@@ -177,7 +181,8 @@ func scanScan(r rowScanner) (model.Scan, error) {
 	sc.ChecksTotal = int(total.Int64)
 	sc.ChecksAssessed = int(assessed.Int64)
 	sc.ChecksUnknown = int(unknown.Int64)
-	sc.Comparable = comparable.Int64 == 1
+	sc.CollectionIncomplete = incomplete
+	sc.Comparable = comparable.Int64 == 1 && !incomplete
 	sc.CreatedAt = created.T
 	sc.StartedAt = started.ptr()
 	sc.FinishedAt = finished.ptr()

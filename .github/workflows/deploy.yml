@@ -34,10 +34,29 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
+      - name: Validate deployment configuration
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          WIF_PROVIDER: ${{ vars.WIF_PROVIDER }}
+          DEPLOYER_SA: ${{ vars.DEPLOYER_SA }}
+          RUNTIME_SA: ${{ vars.RUNTIME_SA }}
+          PLUMBLINE_GITHUB_ORG: ${{ vars.PLUMBLINE_GITHUB_ORG }}
+        run: |
+          missing=0
+          for name in GCP_PROJECT_ID GCP_REGION WIF_PROVIDER DEPLOYER_SA RUNTIME_SA PLUMBLINE_GITHUB_ORG; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing repository variable ${name}. Complete docs/deploy.md before deploying."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
       # Workload Identity Federation: GitHub's OIDC token is exchanged for a
       # short-lived Google token. No long-lived JSON key exists anywhere.
       - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ vars.WIF_PROVIDER }}
           service_account: ${{ vars.DEPLOYER_SA }}
 

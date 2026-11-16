@@ -91,6 +91,17 @@ upgrades its own database.
 
 ## C. Rules engine
 
+### C0. Inventory completeness is separate from known-check coverage
+**What:** A failed or partial asset listing hides the overall score and coverage
+percentage. The API still reports assessed/total known checks and a separately
+named `known_checks_coverage_pct`. The dashboard explains which listings failed,
+and both trend lines break at incomplete scans.
+**Why:** On a first scan there are no previous assets to carry forward. Three
+passing org checks cannot establish 100% overall coverage if repositories could
+not be listed. Inventing a count for unseen assets would be equally misleading.
+**Tradeoff:** Scores are withheld even if most known checks were assessed. Existing
+scans use their stored collection statuses, so this also corrects historical views.
+
 ### C1. Strict three-valued logic (as the spec says)
 **What:** If *any* field a rule reads is unknown, the result is `unknown`. Example:
 "admin without MFA" on a user who is **not** an admin but whose MFA status is
