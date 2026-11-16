@@ -1,0 +1,79 @@
+{{define "content"}}
+<section class="intro">
+  <h1>About Plumbline</h1>
+  <p>A small SaaS Security Posture Management (SSPM) service. A plumb line checks whether a wall is <em>truly</em> straight, not just whether it looks straight.</p>
+</section>
+
+<section class="panel">
+  <h2>Live vs simulated</h2>
+  <p><b>One live integration:</b> a GitHub organization, scanned through the REST API with a <b>read-only</b>, fine-grained token. The connector can only send GET requests.</p>
+  <p><b>One simulated tenant</b> (<code>github:acme-demo</code>): demo data in GitHub's own response format, which changes between scans (v1 → v2 → v2 → v1) so you can watch drift happen. It runs through the exact same client and normalizer as the live scan. It is not a real integration.</p>
+</section>
+
+<section class="panel">
+  <h2>Architecture</h2>
+<pre class="diagram" aria-label="Architecture diagram">
+ Browser (htmx)        JSON clients
+      │ /ui/... HTML          │ /api/... JSON
+      └──────────┬────────────┘
+                 ▼
+        web handlers (no business logic)
+                 │
+                 ▼
+        scan service ── queue (buffered channel) ── 2 workers
+                 │                                    │
+                 │                    connector.Collect(ctx)  [GET only]
+                 │                    ├─ GitHub live  (api.github.com)
+                 │                    └─ GitHub simulated (fake HTTP transport)
+                 │                                    │
+                 │                    normalize → provider-agnostic Assets
+                 │                                    │
+                 │       carry forward assets missing from INCOMPLETE listings
+                 │                                    │
+                 │       rules (YAML) → pass | fail | unknown per (rule, asset)
+                 │                                    │
+                 └──── ONE transaction: assets + results + score/coverage
+                                                      │
+                               SQLite (WAL) ◄─────────┘
+                                   │
+                    drift vs previous succeeded scan → UI / API
+</pre>
+</section>
+
+<section class="panel">
+  <h2>How to read the results</h2>
+  <ul class="plain">
+    <li><b>Pass / fail / unknown.</b> If any field a rule needs can't be read (missing permission, field not returned), the result is <i>unknown</i>, never pass.</li>
+    <li><b>Score + coverage, always together.</b> Score starts at 100 and loses 15/8/3/1 per critical/high/medium/low failure, counting only checks we could assess. Below 60% coverage we show no score at all.</li>
+    <li><b>Not comparable.</b> If a failing check became unknown, or coverage fell more than 5 points, a higher score may just mean "we see less". We flag it and leave it out of the trend line.</li>
+    <li><b>Unverifiable</b> (amber): failing the last time we could read it, unreadable now. Not counted as resolved.</li>
+    <li><b>Missing is not removed.</b> An asset only counts as removed after a <i>complete</i> listing. Until then it is carried forward as unknown.</li>
+  </ul>
+</section>
+
+<section class="panel">
+  <h2>GitHub permissions (least privilege)</h2>
+  <p class="muted">Every call is a GET. Every permission is read-only. If an endpoint needs more, we mark the attribute unknown instead of widening the token.</p>
+  <div class="table-wrap">
+  <table class="table compact">
+    <thead><tr><th>Endpoint</th><th>Fine-grained permission</th><th>Used for</th></tr></thead>
+    <tbody>{{range .Permissions}}<tr><td><code>{{.Endpoint}}</code></td><td>{{.Permission}}</td><td>{{.UsedFor}}</td></tr>{{end}}</tbody>
+  </table>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Rules</h2>
+  <div class="table-wrap">
+  <table class="table compact">
+    <thead><tr><th>ID</th><th>Title</th><th>Kind</th><th>Severity</th></tr></thead>
+    <tbody>{{range .Rules}}<tr><td><code>{{.ID}}</code></td><td>{{.Title}}</td><td>{{.AssetKind}}</td><td>{{template "sev_chip" .Severity}}</td></tr>{{end}}</tbody>
+  </table>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>This is a single-instance demo</h2>
+  <p>It runs on Cloud Run with <code>--max-instances=1</code>; the job queue and the SQLite database live inside that one instance. Data resets when the instance restarts, and the simulated tenant is re-seeded at startup. <code>max-instances</code> is a scaling limit, not a lock: a real multi-tenant product would use a shared database and a durable task queue.</p>
+</section>
+{{end}}

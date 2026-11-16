@@ -1,0 +1,116 @@
+{{define "content"}}
+{{$c := .Card}}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Dashboard</a> <span aria-hidden="true">/</span> {{$c.Name}}</nav>
+<header class="page-head">
+  <div>
+    <h1>{{$c.Name}} {{template "mode_badge" $c.Simulated}}</h1>
+    <p class="conn-id"><code>{{$c.ID}}</code>{{if $c.LastScanAt}} · last scan <time datetime="{{iso $c.LastScanAt}}">{{human $c.LastScanAt}}</time>{{end}}</p>
+  </div>
+  <div class="page-actions">
+    <button class="btn" type="button" hx-post="/ui/connections/{{pathEscape $c.ID}}/scans?view=page" hx-target="#status-page" hx-swap="innerHTML">Run scan</button>
+    <div class="status-slot" id="status-page" aria-live="polite">{{if $c.ActiveScanID}}{{template "scan_status" (poll $c.ActiveScanID "page")}}{{end}}</div>
+  </div>
+</header>
+{{with $c.Failure}}<p class="failure" role="alert">{{.Message}}{{with .RetryAfter}} <time datetime="{{iso .}}" data-format="time">{{clock .}}</time>.{{end}}</p>{{end}}
+
+{{if not $c.HasScan}}
+<p class="empty panel">No completed scan yet. Run one to see results.</p>
+{{else}}
+<section class="grid-2">
+  <div class="panel">
+    <h2>Posture</h2>
+    {{template "score" $c.Score}}
+    <ul class="sev-counts" aria-label="Failing checks by severity">
+      {{range $c.FailCounts}}<li class="chip {{sevClass .Severity}}{{if eq .Count 0}} zero{{end}}"><b>{{.Count}}</b> {{.Severity}}</li>{{end}}
+    </ul>
+    {{if $c.Unverifiable}}<p class="unverifiable-note"><b>{{$c.Unverifiable}}</b> unverifiable finding{{if gt $c.Unverifiable 1}}s{{end}}: failing when last readable, not counted as fixed.</p>{{end}}
+  </div>
+  <div class="panel">
+    <h2>Trend <small class="dim">last {{.Spark.Count}} scan{{if ne .Spark.Count 1}}s{{end}}</small></h2>
+    {{template "sparkline" .Spark}}
+  </div>
+</section>
+
+{{with .Drift}}
+<section class="panel">
+  <h2>Drift since the previous scan</h2>
+  {{if not .PreviousScanID}}<p class="muted">This is the first scan, so every failing check is new.</p>{{end}}
+  <div class="drift-grid">
+    <div class="drift drift-new">
+      <h3>New <span class="count">{{len .New}}</span></h3>
+      {{template "drift_list" .New}}
+    </div>
+    <div class="drift drift-resolved">
+      <h3>Resolved <span class="count">{{len .Resolved}}</span></h3>
+      {{template "drift_list" .Resolved}}
+    </div>
+    <div class="drift drift-unverifiable">
+      <h3>Unverifiable <span class="count">{{len .Unverifiable}}</span></h3>
+      <p class="hint">Failing when last readable; can't be read now. <b>Not</b> counted as fixed.</p>
+      {{template "drift_list" .Unverifiable}}
+    </div>
+    <div class="drift drift-removed">
+      <h3>Resolved (asset removed) <span class="count">{{len .ResolvedAssetRemoved}}</span></h3>
+      <p class="hint">Gone from a <b>complete</b> listing.</p>
+      {{template "drift_list" .ResolvedAssetRemoved}}
+    </div>
+  </div>
+  <p class="muted">{{.PersistingCount}} finding{{if ne .PersistingCount 1}}s{{end}} persisting from earlier scans.</p>
+</section>
+{{end}}
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Findings</h2>
+    <label class="filter">Severity
+      <select name="severity" hx-get="/ui/connections/{{pathEscape $c.ID}}/findings" hx-target="#findings-body" hx-swap="innerHTML">
+        <option value="">All</option>
+        {{range .Severities}}<option value="{{.}}">{{.}}</option>{{end}}
+      </select>
+    </label>
+  </div>
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Severity</th><th>Rule</th><th>Asset</th><th>First seen</th></tr></thead>
+    <tbody id="findings-body">{{template "findings_rows" .}}</tbody>
+  </table>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Unknown checks <span class="count">{{len .Unknowns}}</span></h2>
+  <p class="muted">Checks we could not evaluate. They are left out of the score and lower coverage instead.</p>
+  {{if .Unknowns}}
+  <div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Rule</th><th>Asset</th><th>Reason</th><th>Endpoint</th><th>Last known</th></tr></thead>
+    <tbody>
+    {{range .Unknowns}}
+    <tr{{if eq (print .LastDefinitive) "fail"}} class="row-unverifiable"{{end}}>
+      <td><a href="/f/{{.ID}}">{{index $.Titles .RuleID}}</a><br><code class="dim">{{.RuleID}}</code></td>
+      <td><span class="kind">{{.Asset.Kind}}</span> {{.Asset.Name}}{{if .Asset.CarriedForward}} <span class="tag">carried forward</span>{{end}}</td>
+      <td>{{reasonText .Evidence.Reason}}</td>
+      <td>{{with .Evidence.Endpoint}}<code>{{.}}</code>{{else}}—{{end}}</td>
+      <td>{{if .LastDefinitive}}{{template "result_chip" .LastDefinitive}}{{else}}<span class="dim">never known</span>{{end}}</td>
+    </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  {{end}}
+</section>
+
+<section class="panel">
+  <h2>Collection</h2>
+  <p class="muted">Did we list every asset of each kind? A missing asset only counts as removed after a <b>complete</b> listing.</p>
+  <div class="table-wrap">
+  <table class="table compact">
+    <thead><tr><th>Asset kind</th><th>Listing</th><th>Reason</th></tr></thead>
+    <tbody>
+    {{range .Collections}}<tr><td>{{.Kind}}</td><td><span class="coll coll-{{.Status}}">{{.Status}}</span></td><td>{{if .Reason}}{{reasonText .Reason}}{{else}}—{{end}}</td></tr>{{end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+{{end}}
+{{end}}

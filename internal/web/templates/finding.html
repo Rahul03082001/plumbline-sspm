@@ -1,0 +1,60 @@
+{{define "content"}}
+{{$r := .Result}}
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Dashboard</a> <span aria-hidden="true">/</span> <a href="/c/{{pathEscape .Connection.ID}}">{{.Connection.DisplayName}}</a> <span aria-hidden="true">/</span> {{.Rule.ID}}</nav>
+<header class="page-head">
+  <div>
+    <h1>{{.Rule.Title}}</h1>
+    <p>{{template "sev_chip" .Rule.Severity}} {{template "result_chip" $r.Result}} {{if eq (print .Connection.Mode) "simulated"}}{{template "mode_badge" true}}{{else}}{{template "mode_badge" false}}{{end}}</p>
+  </div>
+</header>
+
+{{if not .IsCurrent}}<p class="callout">This result belongs to an older scan. <a href="/c/{{pathEscape .Connection.ID}}">See the current results →</a></p>{{end}}
+
+{{if and (eq (print $r.Result) "unknown") (eq (print $r.LastDefinitive) "fail")}}
+<div class="callout callout-warn" role="note">
+  <b>Unverifiable{{with .UnverifiableSince}} since <time datetime="{{iso .CreatedAt}}">{{human .CreatedAt}}</time>{{end}}.</b>
+  This check was failing the last time we could read it, and we can't read it now ({{reasonText $r.Evidence.Reason}}).
+  It is <b>not</b> counted as fixed: losing access is not the same as fixing the problem.
+</div>
+{{end}}
+
+<section class="panel">
+  <dl class="facts">
+    <dt>Rule</dt><dd><code>{{.Rule.ID}}</code></dd>
+    <dt>Asset</dt><dd><span class="kind">{{$r.Asset.Kind}}</span> {{$r.Asset.Name}} <span class="dim">(id {{$r.Asset.ExternalID}})</span>{{if $r.Asset.CarriedForward}} <span class="tag">carried forward</span>{{end}}</dd>
+    <dt>Result</dt><dd>{{template "result_chip" $r.Result}} in scan <code>{{short .Scan.ID}}</code> (<time datetime="{{iso .Scan.CreatedAt}}">{{human .Scan.CreatedAt}}</time>)</dd>
+    <dt>First seen</dt><dd>{{with .FirstSeen}}<time datetime="{{iso .CreatedAt}}">{{human .CreatedAt}}</time> <span class="dim">(scan <code>{{short .ID}}</code>; kept through unknown scans)</span>{{else}}—{{end}}</dd>
+    <dt>Last confirmed</dt><dd>{{with .LastConfirmed}}{{template "result_chip" $r.LastDefinitive}} on <time datetime="{{iso .CreatedAt}}">{{human .CreatedAt}}</time> <span class="dim">(scan <code>{{short .ID}}</code>)</span>{{else}}never: no pass or fail has been observed{{end}}</dd>
+    <dt>Fingerprint</dt><dd><code class="wrap">{{$r.Fingerprint}}</code></dd>
+  </dl>
+</section>
+
+<section class="panel">
+  <h2>Evidence</h2>
+  {{with $r.Evidence}}
+  {{if .Values}}
+  <table class="table compact"><thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>{{range $k, $v := .Values}}<tr><td><code>{{$k}}</code></td><td><code>{{$v}}</code></td></tr>{{end}}</tbody>
+  </table>
+  {{end}}
+  {{if .Reason}}
+  <dl class="facts">
+    <dt>Why unknown</dt><dd>{{reasonText .Reason}}</dd>
+    {{with .Endpoint}}<dt>Endpoint</dt><dd><code>{{.}}</code></dd>{{end}}
+    {{with .UnknownFields}}<dt>Unknown fields</dt><dd>{{range .}}<code>{{.}}</code> {{end}}</dd>{{end}}
+    {{with .CollectionStatus}}<dt>Listing status</dt><dd>{{.}}</dd>{{end}}
+  </dl>
+  {{end}}
+  {{end}}
+</section>
+
+<section class="panel">
+  <h2>Remediation</h2>
+  <p>{{.Rule.Remediation}}</p>
+  <h3>Rule logic</h3>
+  <p class="muted">The check fails when <b>all</b> of these are true. If any field is unknown, the result is unknown.</p>
+  <table class="table compact"><thead><tr><th>Field</th><th>Operator</th><th>Value</th></tr></thead>
+    <tbody>{{range .Rule.FailWhen}}<tr><td><code>{{.Field}}</code></td><td>{{.Op}}</td><td><code>{{.Value}}</code></td></tr>{{end}}</tbody>
+  </table>
+</section>
+{{end}}

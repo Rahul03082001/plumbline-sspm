@@ -1,0 +1,20 @@
+[
+  {
+    "id": 880001, "name": "api-service", "full_name": "plumbline-demo-org/api-service",
+    "private": false, "visibility": "public", "default_branch": "main", "archived": false,
+    "owner": { "login": "plumbline-demo-org", "id": 190001, "type": "Organization" },
+    "security_and_analysis": {
+      "secret_scanning": { "status": "enabled" },
+      "secret_scanning_push_protection": { "status": "enabled" }
+    }
+  },
+  {
+    "id": 880002, "name": "legacy-scripts", "full_name": "plumbline-demo-org/legacy-scripts",
+    "private": false, "visibility": "public", "default_branch": "main", "archived": false,
+    "owner": { "login": "plumbline-demo-org", "id": 190001, "type": "Organization" },
+    "security_and_analysis": {
+      "secret_scanning": { "status": "disabled" },
+      "secret_scanning_push_protection": { "status": "disabled" }
+    }
+  }
+]

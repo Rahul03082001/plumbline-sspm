@@ -1,0 +1,17 @@
+{
+  "login": "acme-demo",
+  "id": 9001,
+  "node_id": "O_kgDOACME",
+  "url": "https://api.github.com/orgs/acme-demo",
+  "name": "Acme Corp (simulated)",
+  "type": "Organization",
+  "public_repos": 10,
+  "plan": {
+    "name": "team"
+  },
+  "two_factor_requirement_enabled": false,
+  "default_repository_permission": "read",
+  "members_can_create_repositories": true,
+  "members_can_create_public_repositories": true,
+  "members_can_create_private_repositories": true
+}

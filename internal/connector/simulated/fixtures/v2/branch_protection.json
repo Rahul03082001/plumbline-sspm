@@ -1,0 +1,13 @@
+{
+  "api-gateway": false,
+  "billing-service": false,
+  "web-frontend": false,
+  "mobile-app": false,
+  "infra-terraform": true,
+  "docs-site": true,
+  "auth-service": true,
+  "data-pipeline": true,
+  "design-system": true,
+  "status-page": true,
+  "payments-v2": false
+}

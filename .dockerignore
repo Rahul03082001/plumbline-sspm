@@ -1,0 +1,14 @@
+# Only cmd/, internal/, go.mod and go.sum are needed to build.
+.git
+.github
+.claude
+bin
+e2e
+docs
+testdata
+*.db
+*.db-wal
+*.db-shm
+*.md
+.env
+.env.*

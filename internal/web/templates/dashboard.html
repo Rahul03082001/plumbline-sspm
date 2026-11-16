@@ -1,0 +1,9 @@
+{{define "content"}}
+<section class="intro">
+  <h1>SaaS security posture</h1>
+  <p>Each card shows a posture score <em>together with</em> how much we could actually check. Unknown is never counted as a pass.</p>
+</section>
+<div class="cards">
+{{range .}}{{template "card" .}}{{else}}<p class="empty">No connections configured.</p>{{end}}
+</div>
+{{end}}

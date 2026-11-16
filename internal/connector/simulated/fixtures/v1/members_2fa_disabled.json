@@ -1,0 +1,32 @@
+[
+  {
+    "login": "bob-owner",
+    "id": 5102,
+    "node_id": "MDQ6VXNlcj5102",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5102?v=4",
+    "url": "https://api.github.com/users/bob-owner",
+    "html_url": "https://github.com/bob-owner",
+    "type": "User",
+    "site_admin": false
+  },
+  {
+    "login": "dave",
+    "id": 5104,
+    "node_id": "MDQ6VXNlcj5104",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5104?v=4",
+    "url": "https://api.github.com/users/dave",
+    "html_url": "https://github.com/dave",
+    "type": "User",
+    "site_admin": false
+  },
+  {
+    "login": "erin",
+    "id": 5105,
+    "node_id": "MDQ6VXNlcj5105",
+    "avatar_url": "https://avatars.githubusercontent.com/u/5105?v=4",
+    "url": "https://api.github.com/users/erin",
+    "html_url": "https://github.com/erin",
+    "type": "User",
+    "site_admin": false
+  }
+]

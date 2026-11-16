@@ -1,0 +1,11 @@
+[
+  {
+    "type": "Organization", "id": 550001, "name": "web", "active": true, "events": ["push"],
+    "config": { "url": "http://example.com/hook", "content_type": "json", "insecure_ssl": "1" }
+  },
+  {
+    "type": "Organization", "id": 550002, "name": "web", "active": true, "events": ["push"],
+    "config": { "url": "https://hooks.example.net/ci?token=SHOULD-NOT-BE-STORED", "content_type": "json",
+                "insecure_ssl": "0", "secret": "********" }
+  }
+]

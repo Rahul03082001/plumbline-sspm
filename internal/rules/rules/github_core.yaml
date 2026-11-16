@@ -1,0 +1,110 @@
+# Core GitHub posture rules (section 5 of the spec).
+# A rule FAILS when ALL fail_when conditions are true.
+# If ANY referenced field is unknown, the result is "unknown" (never pass/fail).
+# Fields must exist in the normalized schema (internal/model/attr.go);
+# an unknown field or operator stops the app at startup.
+
+- id: SL-ORG-001
+  title: Organization does not require two-factor authentication
+  severity: critical
+  providers: [github]
+  asset_kind: org
+  fail_when:
+    - { field: two_factor_required, op: eq, value: false }
+  remediation: >
+    Require two-factor authentication for everyone in the organization:
+    Organization Settings > Authentication security > Require two-factor
+    authentication. Members without 2FA are removed, so warn them first.
+
+- id: SL-ORG-002
+  title: Default repository permission grants write or admin
+  severity: high
+  providers: [github]
+  asset_kind: org
+  fail_when:
+    - { field: default_repo_permission, op: in, value: [write, admin] }
+  remediation: >
+    Set the base permission to Read (or No permission) and grant write access
+    through teams instead: Organization Settings > Member privileges > Base
+    permissions.
+
+- id: SL-ORG-003
+  title: Members can create public repositories
+  severity: medium
+  providers: [github]
+  asset_kind: org
+  fail_when:
+    - { field: members_can_create_public_repos, op: eq, value: true }
+  remediation: >
+    Restrict public repository creation to owners: Organization Settings >
+    Member privileges > Repository creation > uncheck Public.
+
+- id: SL-USER-001
+  title: Admin account without MFA
+  severity: critical
+  providers: [github]
+  asset_kind: user
+  fail_when:
+    - { field: is_admin, op: eq, value: true }
+    - { field: mfa_enabled, op: eq, value: false }
+  remediation: >
+    Ask the owner to enable two-factor authentication now, and require it for
+    the organization: Settings > Authentication security > Require two-factor
+    authentication.
+
+- id: SL-REPO-001
+  title: Public repository with an unprotected default branch
+  severity: medium
+  providers: [github]
+  asset_kind: repo
+  fail_when:
+    - { field: visibility, op: eq, value: public }
+    - { field: default_branch_protected, op: eq, value: false }
+  remediation: >
+    Protect the default branch: Repository Settings > Branches > Add branch
+    protection rule, and require pull request reviews before merging.
+
+- id: SL-REPO-002
+  title: Public repository without secret scanning
+  severity: high
+  providers: [github]
+  asset_kind: repo
+  fail_when:
+    - { field: visibility, op: eq, value: public }
+    - { field: secret_scanning, op: eq, value: false }
+  remediation: >
+    Enable secret scanning: Repository Settings > Code security > Secret
+    Protection > Enable. It is free for public repositories.
+
+- id: SL-HOOK-001
+  title: Webhook with SSL verification disabled
+  severity: high
+  providers: [github]
+  asset_kind: webhook
+  fail_when:
+    - { field: insecure_ssl, op: eq, value: true }
+  remediation: >
+    Edit the webhook and select "Enable SSL verification". Without it, anyone
+    on the network path can impersonate the receiver.
+
+- id: SL-HOOK-002
+  title: Webhook without a secret
+  severity: medium
+  providers: [github]
+  asset_kind: webhook
+  fail_when:
+    - { field: has_secret, op: eq, value: false }
+  remediation: >
+    Set a random webhook secret and verify the X-Hub-Signature-256 header in
+    the receiver, so it can reject forged deliveries.
+
+- id: SL-HOOK-003
+  title: Webhook delivers payloads over plain HTTP
+  severity: high
+  providers: [github]
+  asset_kind: webhook
+  fail_when:
+    - { field: url_scheme, op: eq, value: http }
+  remediation: >
+    Change the payload URL to https://. Over plain HTTP the payload (and its
+    signature) travels unencrypted, whatever the SSL verification setting says.

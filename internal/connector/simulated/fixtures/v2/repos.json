@@ -1,0 +1,266 @@
+[
+  {
+    "id": 6101,
+    "node_id": "R_kgDO6101",
+    "name": "api-gateway",
+    "full_name": "acme-demo/api-gateway",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/api-gateway",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6102,
+    "node_id": "R_kgDO6102",
+    "name": "billing-service",
+    "full_name": "acme-demo/billing-service",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/billing-service",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6103,
+    "node_id": "R_kgDO6103",
+    "name": "web-frontend",
+    "full_name": "acme-demo/web-frontend",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/web-frontend",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6104,
+    "node_id": "R_kgDO6104",
+    "name": "mobile-app",
+    "full_name": "acme-demo/mobile-app",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/mobile-app",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6105,
+    "node_id": "R_kgDO6105",
+    "name": "infra-terraform",
+    "full_name": "acme-demo/infra-terraform",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/infra-terraform",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "disabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "id": 6106,
+    "node_id": "R_kgDO6106",
+    "name": "docs-site",
+    "full_name": "acme-demo/docs-site",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/docs-site",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "disabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "id": 6107,
+    "node_id": "R_kgDO6107",
+    "name": "auth-service",
+    "full_name": "acme-demo/auth-service",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/auth-service",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6108,
+    "node_id": "R_kgDO6108",
+    "name": "data-pipeline",
+    "full_name": "acme-demo/data-pipeline",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/data-pipeline",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6109,
+    "node_id": "R_kgDO6109",
+    "name": "design-system",
+    "full_name": "acme-demo/design-system",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/design-system",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6110,
+    "node_id": "R_kgDO6110",
+    "name": "status-page",
+    "full_name": "acme-demo/status-page",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/status-page",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "id": 6111,
+    "node_id": "R_kgDO6111",
+    "name": "payments-v2",
+    "full_name": "acme-demo/payments-v2",
+    "private": false,
+    "visibility": "public",
+    "owner": {
+      "login": "acme-demo",
+      "id": 9001,
+      "type": "Organization"
+    },
+    "default_branch": "main",
+    "archived": false,
+    "html_url": "https://github.com/acme-demo/payments-v2",
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      }
+    }
+  }
+]

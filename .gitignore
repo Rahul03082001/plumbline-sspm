@@ -1,0 +1,25 @@
+# Local database files (SQLite + its WAL/shared-memory side files)
+*.db
+*.db-wal
+*.db-shm
+
+# Build output
+/bin/
+/plumbline
+
+# Secrets: never commit a token
+.env
+.env.*
+
+# Playwright / Node
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/
+
+# Local tool settings
+.claude/
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
