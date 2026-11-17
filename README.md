@@ -15,7 +15,13 @@ and **drift** since the last scan: new, resolved, and *unverifiable*.
 > (`github:acme-demo`) whose data changes between scans so you can watch drift.
 > The simulated tenant is demo data, not a real integration.
 
-**Live demo:** _add your Cloud Run URL here after deploying (see [docs/deploy.md](docs/deploy.md))._
+**[Live demo](https://demo-repository-ptyr.onrender.com/)**
+
+> **First visit:** the demo runs on Render's free tier and may take about a minute
+> to wake after 15 minutes without traffic. Please wait for the dashboard to load.
+> Scan history is temporary: the local SQLite database resets when the service
+> sleeps, restarts, or redeploys. The simulated tenant is seeded again on startup.
+> See [Render's free-service limits](https://render.com/docs/free).
 
 ![Dashboard](docs/screenshots/dashboard.png)
 ![Connection page: drift after visibility was lost and regained](docs/screenshots/connection.png)
@@ -167,7 +173,7 @@ Every decision is explained in plain language in **[DECISIONS.md](DECISIONS.md)*
 
 | | |
 |---|---|
-| Tests | Go unit and integration tests with the race detector, plus **2 Playwright browser tests**, all required by CI |
+| Tests | **75 top-level Go tests** (plus subtests), run with the race detector, and **2 Playwright browser tests**, all required by CI |
 | Direct Go dependencies | **5** |
 | Static binary | ~16 MB (stripped) |
 | Container image | **31.2 MB** uncompressed (distroless static, non-root; measured in CI) |
